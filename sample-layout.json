@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "projectName": "가변형 회의 공간형",
+  "unit": "cm",
+  "orientation": {"rotationDegrees": -90, "label": "왼쪽으로 90도 회전"},
+  "gridSize": 50,
+  "roomBoundary": {"id":"room-boundary-1","type":"polygon","closed":true,"vertices":[{"id":"v1","x":0,"y":920},{"id":"v2","x":0,"y":0},{"id":"v3","x":180,"y":0},{"id":"v4","x":180,"y":100},{"id":"v5","x":310,"y":100},{"id":"v6","x":310,"y":20},{"id":"v7","x":920,"y":20},{"id":"v8","x":920,"y":920},{"id":"v9","x":300,"y":920},{"id":"v10","x":300,"y":690},{"id":"v11","x":130,"y":690},{"id":"v12","x":130,"y":920}]},
+  "spaces": [
+    {"id":"space-grad","name":"대학원생실","type":"graduate","bounds":{"x":0,"y":0,"w":520,"h":920}},
+    {"id":"space-under","name":"학부생실 및 회의 공간","type":"undergrad","bounds":{"x":520,"y":20,"w":400,"h":900}},
+    {"id":"space-common","name":"복도 또는 공용 공간","type":"common","bounds":{"x":300,"y":690,"w":220,"h":230}}
+  ],
+  "walls": [],
+  "glassWalls": [{"id":"glass-1","type":"glass-wall","name":"중앙 유리 파티션","start":{"x":520,"y":920},"end":{"x":520,"y":20},"thickness":10,"locked":false,"opacity":0.72}],
+  "doors": [{"id":"door-1","type":"door","name":"주 출입문","x":330,"y":920,"width":90,"rotation":0,"openingDirection":"inward-up-left","openingAngle":90,"locked":false}],
+  "windows": [],
+  "structures": [],
+  "furniture": [],
+  "targetCounts": {"gradDesk":6,"gradChair":6,"underDesk":4,"underChair":4,"profLarge":1,"profSmall":2,"monitor":1,"meetingTable":1,"sofa":1,"fridge":1},
+  "settings": {"snap":true,"objectSnap":true,"showGrid":true,"showDimensions":true,"wallThickness":12,"minAisleWidth":80},
+  "createdAt": "",
+  "updatedAt": ""
+}
