@@ -9,7 +9,7 @@
 </head>
 <body>
   <header class="app-header">
-    <div class="brand"><span class="brand-mark" aria-hidden="true">A</span><div><strong>AIAD 연구실 플래너</strong><span id="project-label">빈 연구실</span></div></div>
+    <div class="brand"><span class="brand-mark" aria-hidden="true">A</span><div><strong>AIAD 연구실 플래너</strong><span><span id="project-label">빈 연구실</span><span id="current-author" class="current-author">—</span></span></div></div>
     <nav class="header-actions" aria-label="프로젝트 도구">
       <button data-action="undo" title="실행 취소 (Ctrl+Z)">↶</button><button data-action="redo" title="다시 실행 (Ctrl+Y)">↷</button>
       <button class="primary" data-action="save">저장</button><button data-action="reset-furniture">가구 초기화</button><button id="header-dimensions">치수 표시</button><span class="divider"></span>
@@ -21,10 +21,18 @@
   <main class="workspace">
     <aside class="sidebar left-panel">
       <section class="intro-card"><span class="intro-icon">＋</span><div><b>가구를 배치해보세요</b><p>카드를 클릭하거나 도면으로 끌어놓으세요.</p></div></section>
-      <section class="compact-section">
-        <div class="section-title"><h2>프로젝트</h2><span class="hint">LAYOUTS</span></div>
-        <select id="layout-select" aria-label="내 배치안"><option value="empty">빈 연구실</option></select>
-        <div class="layout-actions"><button data-layout-action="save">현재안 저장</button><button data-layout-action="duplicate">복제</button><button data-layout-action="compare">비교</button></div>
+      <section class="compact-section shared-project">
+        <div class="section-title"><h2>공용 배치안</h2><span class="hint">SHARED</span></div>
+        <div class="project-identity"><span>사용자 <b id="current-user">확인 중…</b></span><button id="change-user" type="button">변경</button></div>
+        <button id="new-shared-layout" class="new-layout-button" type="button">+ 새 배치안</button>
+        <div class="shared-toolbar">
+          <input id="layout-search" type="search" placeholder="이름 또는 작성자 검색" aria-label="공용 배치안 검색">
+          <select id="layout-sort" aria-label="공용 배치안 정렬"><option value="recent">최근 수정순</option><option value="name">이름순</option><option value="author">작성자순</option></select>
+        </div>
+        <p id="shared-layout-status" class="shared-layout-status">공용 저장소를 확인하는 중입니다…</p>
+        <div id="shared-layout-list" class="shared-layout-list" aria-live="polite"></div>
+        <div id="legacy-migration" class="legacy-migration" hidden><b>기존 로컬 배치안 발견</b><p>이 브라우저에 저장된 배치안을 공용 프로젝트로 가져올 수 있습니다.</p><button id="legacy-import" type="button">공용 저장소로 가져오기</button></div>
+        <p class="shared-note">다른 사람의 안을 수정할 때는 먼저 복제하는 것을 권장합니다.</p>
       </section>
       <section class="library-section">
         <div class="eyebrow">LIBRARY</div><h2>도면 · 가구</h2>
@@ -64,7 +72,7 @@
     <section class="canvas-area" aria-label="평면도 편집 영역">
       <div class="canvas-toolbar">
         <div id="tools"><button class="tool active" data-tool="select" title="선택 (V)">↖ <span>선택</span></button><button class="tool" data-tool="pan" title="화면 이동 (H)">✥ <span>이동</span></button><button class="tool" data-tool="measure" title="거리 측정 (M)">↔ <span>거리</span></button><button class="tool" data-tool="vertices" title="도면 편집 (N)">◇ <span>도면 편집</span></button><button class="tool" data-tool="walls" title="벽 편집 (W)">╱ <span>벽</span></button></div>
-        <div><span class="status-dot"></span><strong id="mode-label">가구 배치 · 객체 선택</strong><span id="autosave">모든 변경사항 저장됨</span></div>
+        <div><span class="status-dot"></span><strong id="mode-label">가구 배치 · 객체 선택</strong><span id="autosave">공용 저장소 연결 중…</span><button id="retry-server-save" class="retry-save" type="button" hidden>재시도</button></div>
         <div><button id="grid-toggle" class="compact active">격자</button><button id="dimension-toggle" class="compact active">치수</button><button id="fit" class="compact">화면 맞춤</button><button id="focus-selected" class="compact">선택 맞춤</button><button id="zoom-out" class="zoom">−</button><span id="zoom-label">100%</span><button id="zoom-in" class="zoom">＋</button></div>
       </div>
       <div id="canvas-wrap">
@@ -103,10 +111,20 @@
   <dialog id="compare-dialog"><button class="compare-close dialog-close">×</button><div class="eyebrow">LAYOUT COMPARISON</div><h2>배치안 비교</h2><div id="comparison-table"></div></dialog>
   <dialog id="reset-dialog"><div class="eyebrow">RESET OFFICIAL PLAN</div><h2>전체 도면을 초기화할까요?</h2><p>공식 구조와 모든 가구를 현재 도면 기준으로 되돌립니다. 이 작업은 실행 취소할 수 있습니다.</p><div class="dialog-actions"><button data-reset="cancel">취소</button><button class="danger" data-reset="confirm">초기화</button></div></dialog>
 
+  <dialog id="user-dialog" class="project-dialog"><form id="user-form"><div class="eyebrow">USER NAME</div><h2>사용자 이름을 입력해 주세요</h2><p>공용 배치안의 작성자와 변경 이력 표시에 사용됩니다.</p><label>이름<input id="user-name-input" maxlength="40" autocomplete="name" required></label><div class="dialog-actions"><button class="primary" type="submit">계속</button></div></form></dialog>
+  <dialog id="layout-dialog" class="project-dialog"><form id="layout-form"><div class="eyebrow">SHARED LAYOUT</div><h2 id="layout-dialog-title">새 공용 배치안</h2><label>배치안 이름<input id="layout-name-input" maxlength="80" required></label><label>작성자<input id="layout-author-input" maxlength="40" required></label><label>설명<textarea id="layout-description-input" rows="3" maxlength="500"></textarea></label><div class="dialog-actions"><button id="layout-dialog-cancel" type="button">취소</button><button class="primary" type="submit">저장</button></div></form></dialog>
+  <dialog id="switch-dialog" class="project-dialog"><div class="eyebrow">UNSAVED CHANGES</div><h2>저장하지 않은 변경사항이 있습니다</h2><p>다른 배치안을 열기 전에 현재 변경사항을 어떻게 처리할까요?</p><div class="dialog-actions dialog-actions-stack"><button data-switch-choice="cancel">취소</button><button data-switch-choice="discard">변경사항 버리기</button><button class="primary" data-switch-choice="save">저장 후 열기</button></div></dialog>
+  <dialog id="conflict-dialog" class="project-dialog"><div class="eyebrow">VERSION CONFLICT</div><h2>다른 사용자가 먼저 수정했습니다</h2><p>서버의 최신 버전을 열거나, 현재 작업을 새 복사본으로 저장해 주세요.</p><div class="dialog-actions"><button data-conflict-choice="latest">최신 버전 열기</button><button class="primary" data-conflict-choice="copy">복사본으로 저장</button></div></dialog>
+  <dialog id="delete-layout-dialog" class="project-dialog"><div class="eyebrow">DELETE SHARED LAYOUT</div><h2 id="delete-layout-title">배치안을 삭제하시겠습니까?</h2><p>이 작업은 다른 연구실 구성원에게도 영향을 줍니다. 목록에서는 숨겨지지만 데이터베이스에는 보관됩니다.</p><div class="dialog-actions"><button data-delete-choice="cancel">취소</button><button class="danger" data-delete-choice="delete">삭제</button></div></dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="src/config/supabase.js"></script>
+  <script src="src/api/layouts-api.js"></script>
   <script src="src/data/default-floorplan.js"></script>
   <script src="src/3d/scene-manager.js"></script>
   <script src="script.js"></script>
+  <script src="src/ui/project-manager.js"></script>
 </body>
 </html>
