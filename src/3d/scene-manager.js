@@ -57,7 +57,7 @@
       vertices.forEach((a, i) => { const b = vertices[(i + 1) % vertices.length]; this.lineWall(a, b, wallHeight, state.settings.wallThickness || 12, wallMat, Math.max(a.y, b.y) > 790); });
       (state.walls || []).forEach(w => this.lineWall(w.start || w.startPoint, w.end || w.endPoint, wallHeight, w.thickness || 12, wallMat));
       (state.glassWalls || []).forEach(w => this.lineWall(w.start, w.end, wallHeight, w.thickness || 10, this.material(0x75d7e9, { transparent: true, opacity: .28 })));
-      (state.doors || []).forEach(d => { const panel = this.box(d.width, 210, 6, 0x76a98f, d.x + d.width / 2, 105, d.y, { transparent: true, opacity: .45 }); panel.rotation.y = -(d.rotation || 0) * Math.PI / 180; });
+      (state.doors || []).forEach(d => { const angle=(d.rotation||0)*Math.PI/180,cx=d.x+Math.cos(angle)*d.width/2,cz=d.y+Math.sin(angle)*d.width/2,panel=this.box(d.width,210,6,0x76a98f,cx,105,cz,{transparent:true,opacity:.45});panel.rotation.y=-angle; });
       (state.windows || []).forEach(w => { const a=w.start||w.startPoint,b=w.end||w.endPoint,length=Math.hypot(b.x-a.x,b.y-a.y),mesh=this.box(length, 110, 5, 0x76cde7, (a.x+b.x)/2, 150, (a.y+b.y)/2, {transparent:true,opacity:.3});mesh.rotation.y=-Math.atan2(b.y-a.y,b.x-a.x); });
       (state.structures || []).filter(o => !['outlet', 'lan'].includes(o.type)).forEach(o => this.box(o.w || o.width, o.type === 'column' ? wallHeight : 80, o.h || o.height, o.type === 'distribution' ? 0xd7a946 : 0x657086, o.x, o.type === 'column' ? wallHeight / 2 : 40, o.y));
       (state.furniture || []).forEach(o => this.addFurniture(o));
