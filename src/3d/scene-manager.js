@@ -67,7 +67,7 @@
     addFurniture(o) {
       const color = new THREE.Color(o.color || '#8793a7'), x = o.x, z = o.y, w = o.w, d = o.h, group = new THREE.Group();
       const add = (bw, bh, bd, bx, by, bz, c = color) => { const m = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), this.material(c)); m.position.set(bx, by, bz); m.castShadow = true; m.receiveShadow = true; group.add(m); };
-      if (o.type==='desk'||/Table/.test(o.type)) { add(w, 7, d, 0, 72, 0); [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sz]) => add(5, 70, 5, sx*(w/2-8), 35, sz*(d/2-8), 0x596273)); }
+      if (['desk','existingDesk'].includes(o.type)||/Table/.test(o.type)) { add(w, 7, d, 0, 72, 0); [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sz]) => add(5, 70, 5, sx*(w/2-8), 35, sz*(d/2-8), 0x596273)); }
       else if (o.type==='chair'||/Chair/.test(o.type)) { add(w*.72, 8, d*.72, 0, 43, 0); add(w*.72, 55, 7, 0, 73, d*.33, color); }
       else if (o.type === 'sofa') { add(w, 40, d, 0, 25, 0); add(w, 55, 16, 0, 65, d/2-8); }
       else if (o.type === 'monitor') { add(w, 90, 8, 0, 100, 0, 0x263344); add(35, 12, 28, 0, 50, 0, 0x596273); }
