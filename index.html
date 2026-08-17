@@ -1,119 +1,18 @@
 <!doctype html>
 <html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AIAD 공간 배치 시뮬레이터</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header class="app-header">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">A</span>
-      <div><strong>AIAD Space Lab</strong><span>연구실 공간 배치 시뮬레이터</span></div>
-    </div>
-    <nav class="header-actions" aria-label="파일 및 편집 도구">
-      <button data-action="new">새 도면</button><button data-action="save">저장</button><button data-action="undo">↶ 실행 취소</button><button data-action="redo">↷ 다시 실행</button>
-      <span class="divider"></span>
-      <button data-action="rotate-left">↶ 90°</button><button data-action="rotate-right">↷ 90°</button>
-      <button data-action="export-json">JSON</button><button data-action="import-json">불러오기</button><input id="json-file" type="file" accept="application/json" hidden>
-      <button data-action="png">PNG 저장</button><button data-action="print">PDF 인쇄</button><button class="icon-button" data-action="help" aria-label="도움말">?</button>
-    </nav>
-  </header>
-
-  <main class="workspace">
-    <aside class="sidebar left-panel">
-      <section>
-        <div class="eyebrow">DRAWING SETUP</div><h2>도면 설정</h2>
-        <div class="field-row"><label>단위<select id="unit"><option value="cm">cm</option><option value="m">m</option></select></label><label>격자<select id="grid-size"><option value="10">10 cm</option><option value="20">20 cm</option><option value="50" selected>50 cm</option><option value="100">100 cm</option></select></label></div>
-        <label class="switch"><input id="snap" type="checkbox" checked><span></span>격자에 맞추기</label>
-        <label class="switch"><input id="object-snap" type="checkbox" checked><span></span>객체에 맞추기</label>
-        <div class="orientation-note"><b>가로형</b><span>왼쪽 90° 회전 적용</span></div>
-      </section>
-      <section>
-        <div class="section-title"><h2>편집 도구</h2><span class="hint">단축키</span></div>
-        <div class="tool-grid" id="tools">
-          <button class="tool active" data-tool="select"><span>↖</span>선택<kbd>V</kbd></button>
-          <button class="tool" data-tool="vertices"><span>◇</span>꼭짓점<kbd>N</kbd></button>
-          <button class="tool" data-tool="walls"><span>╱</span>벽 편집<kbd>W</kbd></button>
-          <button class="tool" data-tool="measure"><span>↔</span>거리 측정<kbd>M</kbd></button>
-          <button class="tool" data-tool="pan"><span>✥</span>화면 이동<kbd>H</kbd></button>
-        </div>
-        <p class="microcopy">꼭짓점 모드에서 점을 드래그하고, 벽을 더블클릭해 점을 추가하세요.</p>
-      </section>
-      <section>
-        <div class="section-title"><h2>구조물</h2><span class="hint">클릭하여 추가</span></div>
-        <div class="structure-list">
-          <button data-add="door"><i class="swatch door"></i><span>문</span><b>+</b></button>
-          <button data-add="column"><i class="swatch column"></i><span>기둥</span><b>+</b></button>
-          <button data-add="ac"><i class="swatch ac"></i><span>에어컨</span><b>+</b></button>
-        </div>
-      </section>
-      <section class="analysis">
-        <div class="eyebrow">LIVE ANALYSIS</div><h2>공간 분석</h2>
-        <div class="stats"><div><span>전체 면적</span><strong id="stat-area">0 m²</strong></div><div><span>점유율</span><strong id="stat-occupancy">0%</strong></div><div><span>좌석 수</span><strong id="stat-seats">0</strong></div><div><span>경고</span><strong id="stat-warnings">0</strong></div></div>
-        <div class="target-progress"><div><span>교수 요구 충족률</span><b id="target-percent">0%</b></div><progress id="target-progress" max="100" value="0"></progress><ul id="target-list"></ul></div>
-      </section>
-    </aside>
-
-    <section class="canvas-area" aria-label="평면도 편집 영역">
-      <div class="canvas-toolbar">
-        <div><span class="status-dot"></span><strong id="mode-label">객체 선택</strong><span id="autosave">모든 변경사항 저장됨</span></div>
-        <div><button id="grid-toggle" class="compact active">격자</button><button id="dimension-toggle" class="compact active">치수</button><button id="fit" class="compact">화면 맞춤</button><button id="focus-selected" class="compact">선택 맞춤</button><button id="zoom-out" class="zoom">−</button><span id="zoom-label">100%</span><button id="zoom-in" class="zoom">＋</button></div>
-      </div>
-      <div id="canvas-wrap"><canvas id="plan" tabindex="0" aria-label="편집 가능한 AIAD 연구실 평면도"></canvas><div id="toast" role="status"></div></div>
-      <div class="canvas-footer"><span><i class="legend wall"></i>일반 벽</span><span><i class="legend glass"></i>유리벽</span><span><i class="legend warning"></i>충돌 경고</span><span class="scale">축척 <b id="scale-label">1:50</b> · 격자 <b id="grid-label">50 cm</b></span></div>
-    </section>
-
-    <aside class="sidebar right-panel">
-      <section>
-        <div class="eyebrow">LAYOUT PRESETS</div><div class="section-title"><h2>예제 배치안</h2><span class="badge recommended">추천 포함</span></div>
-        <div id="layout-presets" class="preset-list"><button data-layout="study"><b>학습 중심형</b><span>통로와 개인 집중 우선</span></button><button data-layout="meeting"><b>회의 중심형</b><span>발표 시야와 회의 우선</span></button><button class="recommended" data-layout="flex"><b>가변형 회의 공간형</b><span>추천 · 업무/회의 전환</span></button></div>
-        <div class="layout-actions"><button data-layout-action="save">현재안 저장</button><button data-layout-action="duplicate">복제</button><button data-layout-action="compare">비교</button></div>
-      </section>
-      <section>
-        <div class="eyebrow">FURNITURE</div><h2>가구 라이브러리</h2>
-        <div class="furniture-grid" id="furniture-list">
-          <button data-furniture="gradDesk"><span class="furn-icon desk-icon">▰</span><b>대학원생 책상</b><small>140 × 70</small></button>
-          <button data-furniture="gradChair"><span class="furn-icon chair-icon">●</span><b>대학원생 의자</b><small>60 × 60</small></button>
-          <button data-furniture="underDesk"><span class="furn-icon desk2-icon">▰</span><b>학부생 책상</b><small>120 × 60</small></button>
-          <button data-furniture="underChair"><span class="furn-icon chair-icon">●</span><b>학부생 의자</b><small>60 × 60</small></button>
-          <button data-furniture="profLarge"><span class="furn-icon table-icon">▰</span><b>교수 큰 책상</b><small>180 × 80</small></button>
-          <button data-furniture="profSmall"><span class="furn-icon cabinet-icon">▰</span><b>교수 작은 책상</b><small>120 × 60</small></button>
-          <button data-furniture="monitor"><span class="furn-icon monitor-icon">▬</span><b>대형 모니터</b><small>160 × 20</small></button>
-          <button data-furniture="meetingTable"><span class="furn-icon table-icon">▰</span><b>회의 테이블</b><small>180 × 90</small></button>
-          <button data-furniture="meetingChair"><span class="furn-icon chair-icon">●</span><b>회의용 의자</b><small>60 × 60</small></button>
-          <button data-furniture="sofa"><span class="furn-icon sofa-icon">▰</span><b>소파</b><small>180 × 80</small></button>
-          <button data-furniture="fridge"><span class="furn-icon fridge-icon">▥</span><b>냉장고</b><small>80 × 80</small></button>
-          <button data-furniture="cabinet"><span class="furn-icon cabinet-icon">▥</span><b>캐비닛</b><small>90 × 45</small></button>
-          <button data-furniture="shelf"><span class="furn-icon shelf-icon">▤</span><b>책장</b><small>120 × 40</small></button>
-          <button data-furniture="printer"><span class="furn-icon printer-icon">▣</span><b>프린터</b><small>60 × 60</small></button>
-          <button data-furniture="whiteboard"><span class="furn-icon monitor-icon">▭</span><b>화이트보드</b><small>140 × 20</small></button>
-        </div>
-      </section>
-      <section id="properties">
-        <div class="section-title"><div><div class="eyebrow">PROPERTIES</div><h2>선택 객체</h2></div><span id="selection-badge" class="badge">없음</span></div>
-        <div id="empty-properties" class="empty-state"><span>◎</span><p>도면에서 객체를 선택하면<br>상세 속성을 수정할 수 있습니다.</p></div>
-        <form id="property-form" hidden>
-          <label>이름<input id="prop-name" type="text"></label>
-          <label>소속 공간 / 용도<select id="prop-space"><option value="graduate">대학원생실</option><option value="undergraduate">학부생실</option><option value="meeting">회의 공간</option><option value="undergrad">학부생실 및 회의 공간</option><option value="professor">교수님 공간</option><option value="corridor">복도</option><option value="common">공용 공간</option><option value="storage">수납 공간</option><option value="custom">사용자 정의 공간</option></select></label>
-          <div class="field-row"><label>X 좌표<input id="prop-x" type="number"></label><label>Y 좌표<input id="prop-y" type="number"></label></div>
-          <div class="field-row"><label>가로 (cm)<input id="prop-w" type="number" min="1"></label><label>세로 (cm)<input id="prop-h" type="number" min="1"></label></div>
-          <label>회전 <span id="rotation-value">0°</span><input id="prop-rotation" type="range" min="0" max="359" value="0"></label>
-          <label id="door-direction-field" hidden>문 열림 방향<select id="prop-door-direction"><option value="inward-up-left">안쪽 · 위쪽 · 왼쪽 힌지</option><option value="inward-up-right">안쪽 · 위쪽 · 오른쪽 힌지</option><option value="outward-down-left">바깥쪽 · 아래쪽 · 왼쪽 힌지</option><option value="outward-down-right">바깥쪽 · 아래쪽 · 오른쪽 힌지</option></select></label>
-          <div class="field-row"><label>색상<input id="prop-color" type="color"></label><label class="switch prop-lock"><input id="prop-locked" type="checkbox"><span></span>잠금</label></div>
-          <div id="wall-controls" hidden><label>길이 기준<select id="wall-anchor"><option value="start">시작점 고정</option><option value="end">끝점 고정</option><option value="center">중심 고정</option></select></label><div class="property-actions"><button type="button" data-prop="horizontal">수평 정렬</button><button type="button" data-prop="vertical">수직 정렬</button><button type="button" data-prop="split">벽 분할</button><button type="button" data-prop="merge">인접 벽 병합</button></div></div>
-          <div class="property-actions"><button type="button" data-prop="rotate">↻ 90° 회전</button><button type="button" data-prop="duplicate">복제</button><button type="button" class="danger" data-prop="delete">삭제</button></div>
-        </form>
-      </section>
-      <section class="warnings-panel"><div class="section-title"><h2>배치 경고</h2><span id="warning-count" class="badge warn">0</span></div><ul id="warning-list"><li class="all-clear"><span>✓</span>현재 배치에 문제가 없습니다.</li></ul></section>
-      <section class="meeting-panel"><div class="eyebrow">MEETING ANALYSIS</div><h2>회의 공간</h2><div id="meeting-analysis"></div><p class="reflection-note">모니터와 유리창의 상대 방향에 따라 빛 반사 또는 역광이 발생할 수 있습니다. 실제 현장에서 화면 가시성을 확인하세요.</p></section>
-    </aside>
-  </main>
-  <section id="print-report" aria-hidden="true"><header><h1>AIAD 연구실 공간 배치안</h1><p id="print-meta"></p></header><div class="print-grid"><section><h2>분석 요약</h2><div id="print-analysis"></div></section><section><h2>목표 수량 충족 현황</h2><div id="print-targets"></div></section><section><h2>공간별 가구 목록</h2><div id="print-furniture"></div></section><section><h2>경고 목록</h2><div id="print-warnings"></div></section></div></section>
-
-  <dialog id="help-dialog"><button class="dialog-close" aria-label="닫기">×</button><div class="eyebrow">QUICK GUIDE</div><h2>빠른 사용 안내</h2><ol><li><b>도면 수정</b><span>꼭짓점 도구를 선택한 뒤 파란 점을 드래그합니다. 벽을 더블클릭하면 점이 추가됩니다.</span></li><li><b>가구 배치</b><span>오른쪽 라이브러리에서 가구를 클릭하고 도면에서 이동·회전합니다.</span></li><li><b>저장 및 공유</b><span>작업은 자동 저장됩니다. JSON으로 백업하거나 PNG/PDF로 출력하세요.</span></li></ol><p><kbd>Delete</kbd> 삭제 · <kbd>Ctrl+D</kbd> 복제 · <kbd>Ctrl+Z</kbd> 실행 취소 · 마우스 휠 확대/축소</p></dialog>
-  <dialog id="compare-dialog"><button class="compare-close dialog-close" aria-label="닫기">×</button><div class="eyebrow">LAYOUT COMPARISON</div><h2>배치안 비교</h2><div id="comparison-table"></div></dialog>
-  <script src="script.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233182f6'/%3E%3Cpath d='M8 24 14 8h4l6 16h-4l-1.2-3.5h-5.6L12 24Zm6.3-7h3.4L16 12Z' fill='white'/%3E%3C/svg%3E" />
+    <meta
+      name="description"
+      content="실측 치수 기반 연구실 2D 공간 배치 편집기"
+    />
+    <title>LabLayout</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
